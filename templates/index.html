@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--color-bg)',
+                        text: 'var(--color-text)',
+                        primary: 'var(--color-primary)',
+                        'primary-light': 'var(--color-primary-light)',
+                        border: 'var(--color-border)',
+                        muted: 'var(--color-muted)',
+                        card: 'var(--color-card)',
+                        'bg-card': 'var(--color-bg-card)',
+                        shadow: 'var(--color-shadow)',
+                    },
+                    backgroundColor: {
+                        'main': 'var(--color-bg)',
+                        'card': 'var(--color-card)',
+                        'card-transparent': 'var(--color-bg-card)',
+                    },
+                    textColor: {
+                        'main': 'var(--color-text)',
+                        'muted': 'var(--color-muted)',
+                    },
+                    borderColor: {
+                        'main': 'var(--color-border)',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --color-bg: #f7faff;
+            --color-text: #0d1a26;
+            --color-primary: #007bff;
+            --color-primary-light: #99caff;
+            --color-border: #cce0f5;
+            --color-muted: #6b8ba4;
+            --color-card: #e9f2fb;
+            --color-bg-card: #e9f2fb39;
+            --color-shadow: #00000042;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #0a0f39;
+                --color-text: #dceaff;
+                --color-primary: #3399ff;
+                --color-primary-light: #66b2ff;
+                --color-border: #2a3d5c;
+                --color-muted: #8db8e0;
+                --color-card: #1a2533;
+                --color-bg-card: #1a253380;
+                --color-shadow: #3e4b6342;
+            }
+        }
+        
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col">
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-card rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="authModalTitle" class="text-xl font-bold">Sign Up</h2>
+                <button id="closeAuthModal" class="text-muted hover:text-primary">&times;</button>
+            </div>
+            <div id="authTabs" class="flex border-b border-main mb-4">
+                <button id="signupTab" class="px-4 py-2 font-medium text-primary border-b-2 border-primary">Sign Up</button>
+                <button id="loginTab" class="px-4 py-2 font-medium text-muted hover:text-primary">Login</button>
+            </div>
+            <form id="signupForm" class="space-y-4">
+                <div>
+                    <label for="signupEmail" class="block text-sm font-medium text-muted mb-1">Email</label>
+                    <input type="email" id="signupEmail" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="signupFullName" class="block text-sm font-medium text-muted mb-1">Full Name</label>
+                    <input type="text" id="signupFullName" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="signupUsername" class="block text-sm font-medium text-muted mb-1">Username</label>
+                    <input type="text" id="signupUsername" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="signupPassword" class="block text-sm font-medium text-muted mb-1">Password</label>
+                    <input type="password" id="signupPassword" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition">Sign Up</button>
+            </form>
+            <form id="loginForm" class="space-y-4 hidden">
+                <div>
+                    <label for="loginUsername" class="block text-sm font-medium text-muted mb-1">Username</label>
+                    <input type="text" id="loginUsername" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-muted mb-1">Password</label>
+                    <input type="password" id="loginPassword" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition">Login</button>
+            </form>
+            <div id="authMessage" class="mt-4 text-sm text-red-500 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-card rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Create New Group</h2>
+                <button id="closeCreateGroupModal" class="text-muted hover:text-primary">&times;</button>
+            </div>
+            <form id="createGroupForm" class="space-y-4">
+                <div>
+                    <label for="groupName" class="block text-sm font-medium text-muted mb-1">Group Name</label>
+                    <input type="text" id="groupName" required class="w-full px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-muted mb-2">Add Members</label>
+                    <div class="max-h-60 overflow-y-auto border border-main rounded-md p-2 bg-card">
+                        <div id="userList" class="space-y-2"></div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition">Create Group</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="flex flex-col h-full">
+        <!-- Header -->
+        <header class="bg-card shadow-sm py-4 px-6 flex justify-between items-center border-b border-main">
+            <h1 class="text-xl font-bold">Group Chat</h1>
+            <div class="flex items-center space-x-4">
+                <button id="toggleDarkMode" class="text-muted hover:text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+                <div id="userInfo" class="hidden flex items-center space-x-2">
+                    <span id="usernameDisplay" class="font-medium"></span>
+                    <button id="logoutButton" class="text-muted hover:text-primary">Logout</button>
+                </div>
+                <button id="authButton" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition">Login</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar - Groups and Users -->
+            <div id="sidebar" class="w-64 bg-card border-r border-main flex flex-col md:flex hidden">
+                <div class="p-4 border-b border-main">
+                    <button id="createGroupButton" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition">Create Group</button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="p-4">
+                        <h3 class="font-medium text-muted mb-2">Your Groups</h3>
+                        <ul id="groupList" class="space-y-2"></ul>
+                    </div>
+                    <div class="p-4 border-t border-main">
+                        <h3 class="font-medium text-muted mb-2">All Users</h3>
+                        <ul id="allUserList" class="space-y-2"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Chat Header -->
+                <div id="chatHeader" class="bg-card border-b border-main p-4 hidden">
+                    <h2 id="currentChatName" class="text-lg font-bold"></h2>
+                    <p id="currentChatInfo" class="text-sm text-muted"></p>
+                </div>
+
+                <!-- Messages -->
+                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide"></div>
+
+                <!-- Message Input -->
+                <div id="messageInputContainer" class="bg-card border-t border-main p-4 hidden">
+                    <form id="messageForm" class="flex space-x-2">
+                        <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 px-3 py-2 border border-main rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition">Send</button>
+                    </form>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="flex-1 flex flex-col items-center justify-center p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-muted mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <h3 class="text-lg font-medium text-muted mb-2">No chat selected</h3>
+                    <p class="text-muted text-center max-w-md">Select a group or user from the sidebar to start chatting.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-main flex justify-around py-2">
+        <button id="mobileGroupsButton" class="flex flex-col items-center text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span class="text-xs">Groups</span>
+        </button>
+        <button id="mobileUsersButton" class="flex flex-col items-center text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span class="text-xs">Users</span>
+        </button>
+        <button id="mobileNewGroupButton" class="flex flex-col items-center text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span class="text-xs">New Group</span>
+        </button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
